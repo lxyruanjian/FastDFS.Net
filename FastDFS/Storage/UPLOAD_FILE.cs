@@ -61,7 +61,7 @@ namespace FastDFS.Client
             IPEndPoint endPoint = (IPEndPoint)paramList[0];
             
             byte storePathIndex = (byte)paramList[1];
-            long fileSize = (long)paramList[2];
+            long fileSize = Convert.ToInt64(paramList[2]);//(long)paramList[2]; 
             string ext = (string)paramList[3];
             
             Stream stream = paramList[4] as Stream;

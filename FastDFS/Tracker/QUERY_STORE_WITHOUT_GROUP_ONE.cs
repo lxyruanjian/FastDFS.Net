@@ -22,9 +22,35 @@ namespace FastDFS.Client
     /// </summary>
     public class QUERY_STORE_WITHOUT_GROUP_ONE : FDFSRequest
     {
+        private static QUERY_STORE_WITHOUT_GROUP_ONE _instance = null;
+        public static QUERY_STORE_WITHOUT_GROUP_ONE Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new QUERY_STORE_WITHOUT_GROUP_ONE();
+                return _instance;
+            }
+        }
         private QUERY_STORE_WITHOUT_GROUP_ONE()
         {
-            
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="paramList">
+        /// 1,string groupName-->the storage groupName
+        /// </param>
+        /// <returns></returns>
+        public override FDFSRequest GetRequest(params object[] paramList)
+        {
+            QUERY_STORE_WITHOUT_GROUP_ONE result = new QUERY_STORE_WITHOUT_GROUP_ONE();
+
+            result.Header = new FDFSHeader(0,
+                Consts.TRACKER_PROTO_CMD_SERVICE_QUERY_STORE_WITHOUT_GROUP_ONE, 0);
+            return result;
         }
     }
 }

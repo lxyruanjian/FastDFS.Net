@@ -50,6 +50,9 @@ namespace FastDFS.Client
 
         public const byte METADATA_KEY_VALUE_SEPARATOR = 0x02;
         public const byte METADATA_PAIR_SEPARATER = 0x01;
+
+        public const string FDFS_FIELD_SEPERATOR = "\u0002";
+        public const string FDFS_RECORD_SEPERATOR = "\u0001";
     }
 
     public enum MetaDataOption

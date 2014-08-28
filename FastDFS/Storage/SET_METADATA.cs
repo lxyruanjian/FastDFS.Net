@@ -48,9 +48,9 @@ namespace FastDFS.Client
         public override FDFSRequest GetRequest(params object[] paramList)
         {
             IPEndPoint endPoint = (IPEndPoint)paramList[0];
-            string     groupName = (string)paramList[1];
-            string     fileName = (string)paramList[2];
-            IDictionary<string, string> metaData = (IDictionary<string,string>)paramList[3];
+            string groupName = (string)paramList[1];
+            string fileName = (string)paramList[2];
+            IDictionary<string, string> metaData = (IDictionary<string, string>)paramList[3];
             string option = (MetaDataOption)paramList[4] == MetaDataOption.Overwrite ? "O" : "M";
 
             byte[] optionBuffer = Util.StringToByte(option);
@@ -63,9 +63,9 @@ namespace FastDFS.Client
 
             int length = Consts.FDFS_PROTO_PKG_LEN_SIZE +  // filename length
                          Consts.FDFS_PROTO_PKG_LEN_SIZE +  // metadata size
-                         1                              +  // operation flag
+                         1 +  // operation flag
                          Consts.FDFS_GROUP_NAME_MAX_LEN +  // group name
-                         fileNameBuffer.Length          +  // file name
+                         fileNameBuffer.Length +  // file name
                          metaDataBuffer.Length;            // metadata 
 
             List<byte> bodyBuffer = new List<byte>();
@@ -87,20 +87,97 @@ namespace FastDFS.Client
 
         private byte[] CreateMetaDataBuffer(IDictionary<string, string> metaData)
         {
-            List<byte> metaDataBuffer = new List<byte>();
-            foreach (KeyValuePair<string, string> p in metaData)
-            {
-                // insert a separater if this is not the first meta data item.
-                if (metaDataBuffer.Count == 0)
-                {
-                    metaDataBuffer.Add(Consts.METADATA_PAIR_SEPARATER);
-                }
+            //List<byte> metaDataBuffer = new List<byte>();
+            //foreach (KeyValuePair<string, string> p in metaData)
+            //{
+            //    // insert a separater if this is not the first meta data item.
+            //    if (metaDataBuffer.Count == 0)
+            //    {
+            //        metaDataBuffer.Add(Consts.METADATA_PAIR_SEPARATER);
+            //    }
 
-                metaDataBuffer.AddRange(Util.StringToByte(p.Key));
-                metaDataBuffer.Add(Consts.METADATA_KEY_VALUE_SEPARATOR);
-                metaDataBuffer.AddRange(Util.StringToByte(p.Value));
+            //    metaDataBuffer.AddRange(Util.StringToByte(p.Key));
+            //    metaDataBuffer.Add(Consts.METADATA_KEY_VALUE_SEPARATOR);
+            //    metaDataBuffer.AddRange(Util.StringToByte(p.Value));
+            //}
+            //return metaDataBuffer.ToArray();
+
+            NameValuePair[] nameValuePair = new NameValuePair[metaData.Count];
+            int index = 0;
+            foreach (var key in metaData.Keys)
+            {
+                nameValuePair[index] = new NameValuePair(key, metaData[key]);
+                index++;
             }
-            return metaDataBuffer.ToArray();
+            if (metaData.Count == 0)
+            {
+                return Util.StringToByte("");
+            }
+
+            StringBuilder sb = new StringBuilder(32 * metaData.Count);
+            sb.Append(nameValuePair[0].Name).Append(Consts.FDFS_FIELD_SEPERATOR).Append(nameValuePair[0].Value);
+            for (int i = 1; i < nameValuePair.Length; i++)
+            {
+                sb.Append(Consts.FDFS_RECORD_SEPERATOR);
+                sb.Append(nameValuePair[i].Name).Append(Consts.FDFS_FIELD_SEPERATOR).Append(nameValuePair[i].Value);
+            }
+
+            return Util.StringToByte(sb.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Metedata的结构
+    /// </summary>
+    public class NameValuePair
+    {
+        private string _name;
+        private string _value;
+
+        public NameValuePair()
+        {
+        }
+
+        /// <summary>
+        /// 初始化<see cref="NameValuePair"/> 对象.
+        /// </summary>
+        /// <param name="name">Metedata的名称.</param>
+        public NameValuePair(string name)
+        {
+            _name = name;
+        }
+
+        /// <summary>
+        /// 初始化<see cref="NameValuePair"/> 对象.
+        /// </summary>
+        /// <param name="name">Mmetedata的名称.</param>
+        /// <param name="value">Metedata的值.</param>
+        public NameValuePair(string name, string value)
+        {
+            _name = name;
+            _value = value;
+        }
+
+        /// <summary>
+        /// 得到或者设置Metedata的名称
+        /// </summary>
+        /// <value>Metedata的名称.</value>
+        public virtual string Name
+        {
+            get { return _name; }
+
+            set { _name = value; }
+        }
+
+        /// <summary>
+        /// 得到或者设置Metedata的值.
+        /// </summary>
+        /// <value>Metedata的值.</value>
+        public virtual string Value
+        {
+            get { return _value; }
+
+            set { _value = value; }
         }
     }
 }

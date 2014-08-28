@@ -49,6 +49,7 @@ namespace FastDFS.Client
         {
             byte[] headerBuffer = this._header.ToByte();
             outputStream.Write(headerBuffer, 0, headerBuffer.Length);
+            if(this._body!=null)
             outputStream.Write(this._body, 0, this._body.Length);
         }
 

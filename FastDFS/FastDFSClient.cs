@@ -12,11 +12,27 @@ namespace FastDFS.Client
         /// <summary>
         /// 获取存储节点
         /// </summary>
+        /// <returns>存储节点实体类</returns>
+        public static StorageNode GetStorageNode()
+        {
+            return GetStorageNode("");
+        }
+        /// <summary>
+        /// 获取存储节点
+        /// </summary>
         /// <param name="groupName">组名</param>
         /// <returns>存储节点实体类</returns>
         public static StorageNode GetStorageNode(string groupName)
         {
-            FDFSRequest trackerRequest = QUERY_STORE_WITH_GROUP_ONE.Instance.GetRequest(groupName);
+            FDFSRequest trackerRequest = null;
+            if (!string.IsNullOrEmpty(groupName))
+            {
+                trackerRequest = QUERY_STORE_WITH_GROUP_ONE.Instance.GetRequest(groupName);
+            }
+            else
+            {
+                trackerRequest = QUERY_STORE_WITHOUT_GROUP_ONE.Instance.GetRequest(groupName);
+            }
             QUERY_STORE_WITH_GROUP_ONE.Response trackerResponse = new QUERY_STORE_WITH_GROUP_ONE.Response();
             trackerRequest.GetResponse(trackerResponse);
             IPEndPoint storeEndPoint = new IPEndPoint(IPAddress.Parse(trackerResponse.IPStr), trackerResponse.Port);
@@ -62,12 +78,24 @@ namespace FastDFS.Client
         /// <param name="contentByte">文件内容</param>
         /// <param name="fileExt">文件扩展名(注意:不包含".")</param>
         /// <returns>文件名</returns>
-        public static string UploadFile(StorageNode storageNode,byte[] contentByte,string fileExt)
+        public static string UploadFile(StorageNode storageNode, byte[] contentByte, string fileExt)
         {
             FDFSRequest storageRequest = UPLOAD_FILE.Instance.GetRequest(storageNode.EndPoint, storageNode.StorePathIndex, contentByte.Length, fileExt, contentByte);
             UPLOAD_FILE.Response storageResponse = new UPLOAD_FILE.Response();
             storageRequest.GetResponse(storageResponse);
             return storageResponse.FileName;
+        }
+
+        public static string UploadFile(StorageNode storageNode, byte[] contentByte, string fileExt, IDictionary<string, string> metadata)
+        {
+            FDFSRequest storageRequest = UPLOAD_FILE.Instance.GetRequest(storageNode.EndPoint, storageNode.StorePathIndex, contentByte.Length, fileExt, contentByte);
+            UPLOAD_FILE.Response storageResponse = new UPLOAD_FILE.Response();
+            storageRequest.GetResponse(storageResponse);
+            string fileName = storageResponse.FileName;
+            FDFSRequest storageRequest2 = SET_METADATA.Instance.GetRequest(storageNode.EndPoint, storageNode.GroupName, fileName, metadata, MetaDataOption.Merge);
+            storageRequest2.GetResponse();
+
+            return fileName;
         }
 
         public static string UploadFileByName(StorageNode storageNode, string filename)
@@ -125,7 +153,7 @@ namespace FastDFS.Client
         /// <param name="groupName">组名</param>
         /// <param name="fileName">文件名</param>
         /// <param name="contentByte">文件内容</param>
-        public static void AppendFile(string groupName,string fileName, byte[] contentByte)
+        public static void AppendFile(string groupName, string fileName, byte[] contentByte)
         {
             FDFSRequest trackerRequest = QUERY_UPDATE.Instance.GetRequest(groupName, fileName);
             QUERY_UPDATE.Response trackerResponse = new QUERY_UPDATE.Response();
@@ -140,7 +168,7 @@ namespace FastDFS.Client
         /// </summary>
         /// <param name="groupName">组名</param>
         /// <param name="fileName">文件名</param>
-        public static void RemoveFile(string groupName,string fileName)
+        public static void RemoveFile(string groupName, string fileName)
         {
             FDFSRequest trackerRequest = QUERY_UPDATE.Instance.GetRequest(groupName, fileName);
             QUERY_UPDATE.Response trackerResponse = new QUERY_UPDATE.Response();
@@ -155,7 +183,7 @@ namespace FastDFS.Client
         /// <param name="storageNode">GetStorageNode方法返回的存储节点</param>
         /// <param name="fileName">文件名</param>
         /// <returns>文件内容</returns>
-        public static byte[] DownloadFile(StorageNode storageNode,string fileName)
+        public static byte[] DownloadFile(StorageNode storageNode, string fileName)
         {
             FDFSRequest storageRequest = DOWNLOAD_FILE.Instance.GetRequest(storageNode.EndPoint, 0L, 0L, storageNode.GroupName, fileName);
             DOWNLOAD_FILE.Response storageResponse = new DOWNLOAD_FILE.Response();

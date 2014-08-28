@@ -17,7 +17,7 @@ namespace FastDFS
 
             //===========================Initial========================================
             List<IPEndPoint> trackerIPs = new List<IPEndPoint>();
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse("192.168.1.230"),22122);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse("192.168.1.13"),22122);
             trackerIPs.Add(endPoint);
             ConnectionManager.Initialize(trackerIPs);
             StorageNode node = FastDFSClient.GetStorageNode("group1");
